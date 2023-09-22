@@ -5,6 +5,8 @@ const { createIndexes } = require("./User.model");
 const chapterSchema = new Schema(
     {
         // Visible content
+
+        // chapterNumber serves as both visible number aswell as the position
         chapterNumber: {
             type: Number,
             required: true,
@@ -20,12 +22,6 @@ const chapterSchema = new Schema(
         text: {
             type: String,
             maxlength: 1000000,
-        },
-
-        // Position property to manage the position in the list
-        position: {
-            type: Number,
-            required: true,
         },
 
         // Reference to Book model
