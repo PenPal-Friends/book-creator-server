@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const mongoose = require("mongoose");
 const Book = require ("../models/Book.model");
-// const Chapter = require ("../models/Chapter.Model");
+// const Chapter = require ("../models/Chapter.model");
 
 const {isAuthenticated } = require("../middleware/jwt.middleware");
 
