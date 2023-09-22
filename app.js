@@ -12,9 +12,7 @@ const express = require("express");
 const app = express();
 
 // Add the CORS middleware
-app.use(cors({
-    origin: 'http://localhost:5173'
-  }));
+
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);

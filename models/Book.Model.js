@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 
+
 const bookSchema = new Schema(
   {
     title: String,
+    subtitle: String,
+    // genre: Enum,
     description: String,
     image: String,
 
