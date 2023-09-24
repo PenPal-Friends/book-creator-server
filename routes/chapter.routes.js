@@ -123,27 +123,35 @@ router.put("/books/:bookId/chapters/:chapterId", (req, res, next) => {
 
 
 // Delete specific chapter
-// router.delete("/books/:bookId/chapters/:chapterId", (req, res, next) => {
-//     const { bookId, chapterId } = req.params;
+router.delete("/books/:bookId/chapters/:chapterId", (req, res, next) => {
+    const { bookId, chapterId } = req.params;
 
-//     let deletedChapterNumber;
+    Chapter.findOneAndDelete({ _id: chapterId, book: bookId })
+        .then(chapterToDelete => {
+            if (!chapterToDelete) {
+                return res.status(404).json({
+                    message: "Chapter not found or doesnt belong to specific book.",
+                });
+            }
 
-//     Chapter.findOneAndDelete({ _id: chapterId, book: bookId })
-//         .then(deletedChapter => {
-//             if (!deletedChapter) {
-//                 return res.status(404).json({
-//                     message: "Chapter not found or doesnt belong to specific book.",
-//                 });
-//             }
-//             res.json({ message: "Chapter successfully deleted. "});
-//         })
-//         .catch(err => {
-//             res.status(500).json({
-//                 message: "Error deleting the chapter.",
-//                 error: err
-//             });
-//         });
-// });
+            // Update chapterNumber of chapters that haven't been deleted
+            return Chapter.updateMany(
+                // Selector: Right bookId & chapter no > than the one we delete
+                {
+                    book: bookId,
+                    chapterNumber: { $gt: chapterToDelete.chapterNumber }
+                },
+                // Increment the chapterNumber by 1
+                { $inc: { chapterNumber: -1 } }
+            );
+        })
+        .then(() => {
+            res.json({ message: "Chapter successfully deleted and others updated." });
+        })
+        .catch(err => {
+            res.status(500).json({ message: "Error deleting the chapter.", error: err });
+        });
+});
 
 
 //
@@ -153,9 +161,11 @@ router.put("/books/:bookId/chapters/:chapterId", (req, res, next) => {
 // Move card up
 router.put("/books/:bookId/chapters/:chapterId/move-up", (req, res, next) => {
     const { chapterId } = req.params;
+    let aboveChapter;
 
     Chapter.findById(chapterId)
         .then(chapter => {
+            console.log("Current Chapter:", chapter);
             if (!chapter) {
                 return res.status(404).json({
                     message: "Chapter not found or doesnt belong to specific book.",
@@ -169,34 +179,41 @@ router.put("/books/:bookId/chapters/:chapterId/move-up", (req, res, next) => {
                     message: "Chapter is already on top.",
                 });
             }
-
+            
             // Find the chapter above the current one
-            Chapter.findOne({ book: chapter.book, chapterNumber: chapter.chapterNumber - 1 })
-                .then(aboveChapter => {
-                    if (!aboveChapter) {
-                        return res.status(404).json({
-                            message: "No chapter found one position higher.",
-                        });
-                    }
-
-                    // Position of current chapter -1 & position of the chapter above +1
-                    chapter.chapterNumber--;
-                    aboveChapter.chapterNumber++;
-
-                    // Save both chapters
-                    return chapter.save()
-                        .then(() => aboveChapter.save())
-                        .then(() => {
-                            res.json({ message: "Chapter moved up successfully." });
-                        });
-                })
-                .catch(error => {
-                    res.status(500).json({ message: "Error finding the chapter above.", error: error });
+            return Chapter.findOne({ book: chapter.book, chapterNumber: chapter.chapterNumber - 1 });
+        })
+        .then(chapterAbove => {
+            aboveChapter = chapterAbove;
+            if (!aboveChapter) {
+                return res.status(404).json({
+                    message: "No chapter found one position higher.",
                 });
-    })
-    .catch(error => {
-        res.status(500).json({ message: "Error finding the chapter.", error: error });
-    });
+            }
+            // Temporarily displace aboveChapter
+            aboveChapter.chapterNumber = -1;
+            return aboveChapter.save();
+        })
+        // Find current chapter in the database
+        .then(() => {
+            return Chapter.findById(chapterId);
+        })
+        // Decrement chapterNumber of current chapter
+        .then(freshChapter => {
+            freshChapter.chapterNumber--;
+            return freshChapter.save();
+        })
+        .then(updatedChapter => {
+            aboveChapter.chapterNumber = updatedChapter.chapterNumber + 1;
+            return aboveChapter.save();
+        })
+        .then(() => {
+            // Feedback
+            res.json({ message: "Chapter moved up successfully." });
+        })
+        .catch (error => {
+            res.status(500).json({ message: "Error moving the chapter.", error: error });
+        });
 });
 
 
@@ -221,9 +238,7 @@ router.put("/books/:bookId/chapters/:chapterId/move-down", (req, res, next) => {
                     // If chapter is already at the bottom
                     if (chapter.chapterNumber === maxChapterNumber) {
                         // ... abort
-                        return res.status(400).json({
-                            message: "Chapter is already at the bottom."
-                        });
+                        throw new Error("Chapter is already at the bottom.");
                     }
 
                     // Find the chapter below the current one
@@ -237,26 +252,29 @@ router.put("/books/:bookId/chapters/:chapterId/move-down", (req, res, next) => {
                         });
                     }
 
-                    // Position of current chapter +1 & position of the chapter below -1
+                    // Temporarily displace belowChapter
+                    belowChapter.chapterNumber = -1;
+                    return belowChapter.save();
+                })
+                .then(() => {
+                    // Position of current chapter +1
                     chapter.chapterNumber++;
-                    belowChapter.chapterNumber--;
-
-                    // Save both chapters
-                    return chapter.save()
-                        .then(() => belowChapter.save())
-                        .then(() => {
-                            res.json({ message: "Chapter moved down successfully." });
-                        });
+                    return chapter.save();
+                })
+                .then(() => {
+                    return Chapter.findOneAndUpdate({ book: chapter.book, chapterNumber: -1 }, { chapterNumber: chapter.chapterNumber - 1 }, { new: true });
+                })
+                .then(() => {
+                    res.json({ message: "Chapter moved down successfully." });
                 })
                 .catch(error => {
-                    res.status(500).json({ message: "Error finding the chapter below.", error: error });
+                    res.status(500).json({ message: "Error moving chapter down.", error: error });
                 });
         })
         .catch(error => {
-            res.status(500).json({ message: "Error finding the chapter.", error: error });
+            res.status(500).json({ message: "Error finding the chapter", error: error });
         });
 });
-
 
 
 module.exports = router;
