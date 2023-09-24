@@ -6,7 +6,7 @@ const bookSchema = new Schema(
   {
     title: String,
     subtitle: String,
-    // genre: Enum,
+    // genre : ["Fiction","Business", "History"],
     description: String,
     image: String,
 
