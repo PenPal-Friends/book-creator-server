@@ -1,17 +1,19 @@
 const router = require("express").Router();
 const mongoose = require("mongoose");
-const Book = require ("../models/Book.model");
+//const Chapter = require("../models/Chapter.model");
+const Book = require("../models/Book.Model");
 // const Chapter = require ("../models/Chapter.model");
 
 const {isAuthenticated } = require("../middleware/jwt.middleware");
 
 //  POST /api/book  -  Creates a new book
 router.post("/books",isAuthenticated, (req, res, next) => {
-    const { title, description, image } = req.body;
+    const { title, subtitle, description, image } = req.body;
     const userId = req.payload._id;
 
     const newBook = {
         title,
+        subtitle,
         description,
         image,
         user : userId,
@@ -40,6 +42,7 @@ router.put('/books/:bookId', (req, res, next) => {
     }
     const newDetails = {
         title: req.body.title,
+        subtitle:req.body.subtitle,
         description: req.body.description,
         image: req.body.image
     }
