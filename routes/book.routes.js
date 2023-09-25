@@ -1,21 +1,21 @@
 const router = require("express").Router();
 const mongoose = require("mongoose");
-//const Chapter = require("../models/Chapter.model");
+const Chapter = require("../models/Chapter.model");
 const Book = require("../models/Book.Model");
 // const Chapter = require ("../models/Chapter.model");
-
+ const fileUploader = require('../config/cloudinary.config');
 const {isAuthenticated } = require("../middleware/jwt.middleware");
 
 //  POST /api/book  -  Creates a new book
 router.post("/books",isAuthenticated, (req, res, next) => {
-    const { title, subtitle, description, image } = req.body;
+    const { title, subtitle, description, imageUrl } = req.body;
     const userId = req.payload._id;
 
     const newBook = {
         title,
         subtitle,
         description,
-        image,
+        imageUrl,
         user : userId,
     }
 
@@ -44,7 +44,7 @@ router.put('/books/:bookId', (req, res, next) => {
         title: req.body.title,
         subtitle:req.body.subtitle,
         description: req.body.description,
-        image: req.body.image
+        imageUrl: req.body.imageUrl
     }
 
     Book.findByIdAndUpdate(bookId, newDetails, { new: true })

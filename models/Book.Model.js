@@ -8,7 +8,7 @@ const bookSchema = new Schema(
     subtitle: String,
     // genre : ["Fiction","Business", "History"],
     description: String,
-    image: String,
+    imageUrl: String,
 
     //ref. to the user model
     user: {
