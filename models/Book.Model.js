@@ -6,7 +6,7 @@ const bookSchema = new Schema(
   {
     title: String,
     subtitle: String,
-    // genre : ["Fiction","Business", "History"],
+    genre: String,
     description: String,
     imageUrl: String,
 
