@@ -25,8 +25,12 @@ module.exports = (app) => {
   app.use(
     cors({
       credentials: true,
+<<<<<<< HEAD
       // origin: process.env.ORIGIN || 'http://localhost:5173',
       origin: [FRONTEND_URL],
+=======
+      origin: FRONTEND_URL,
+>>>>>>> 978845212bf2107a71a703e129529bdbe931f823
     })
   );
 
