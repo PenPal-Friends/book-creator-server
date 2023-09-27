@@ -154,6 +154,23 @@ router.delete("/books/:bookId/chapters/:chapterId", (req, res, next) => {
 });
 
 
+// Get list of chapters
+router.get("/books/:bookId/chapters/", (req, res, next) => {
+    const { bookId } = req.params;
+
+    Chapter.find({ book: bookId })
+        .then(chapters => {
+            res.json(chapters);
+        })
+        .catch(error => {
+            res.status(500).json({
+                message: "Error retrieving chapters for the book",
+                error: error
+            });
+        });
+});
+
+
 //
 // Move Chapter cards //
 //
