@@ -31,9 +31,10 @@ router.post("/books",isAuthenticated, (req, res, next) => {
 });
 
 // PUT  /api/book/:bookId  -  Updates a specific book by id
-//later include isAuthenticated
+//later include isAuthenticated added now
 
-router.put('/books/:bookId', (req, res, next) => {
+
+router.put('/books/:bookId',  (req, res, next) => {
     const { bookId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
