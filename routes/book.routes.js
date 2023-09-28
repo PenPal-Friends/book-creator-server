@@ -6,8 +6,28 @@ const Book = require("../models/Book.Model");
  const fileUploader = require('../config/cloudinary.config');
 const {isAuthenticated } = require("../middleware/jwt.middleware");
 
-//  POST /api/book  -  Creates a new book
-router.post("/books",isAuthenticated, (req, res, next) => {
+
+// GET all books
+router.get('/books', isAuthenticated, (req, res, next) => {
+    // Fetch books only for the authenticated user
+    const userId = req.payload._id;
+  
+    Book.find({ user: userId })
+        .then(allBooks => {
+            res.json(allBooks);
+        })
+        .catch(err => {
+            console.log("Error getting the Books...", err);
+            res.status(500).json({
+                message: "Error getting the Books",
+                error: err
+            });
+        });
+});
+
+
+// POST create new book
+router.post("/books", isAuthenticated, (req, res, next) => {
     const { title, subtitle, description, imageUrl } = req.body;
     const userId = req.payload._id;
 
@@ -30,9 +50,32 @@ router.post("/books",isAuthenticated, (req, res, next) => {
         });
 });
 
-// PUT  /api/book/:bookId  -  Updates a specific book by id
-//later include isAuthenticated
 
+// GET single book
+// later include isAuthenticated
+router.get('/books/:bookId', isAuthenticated, (req, res, next) => {
+    const { bookId } = req.params;
+
+    Book.findOne({ _id: bookId })
+        .then(book => {
+            if (!book) {
+                return res.status(404).json({
+                    message: "Book not found.",
+                });
+            }
+            res.json(book);
+        })
+        .catch(err => {
+            res.status(500).json({
+                message: "Error retrieving the book",
+                error: err
+            });
+        });
+});
+
+
+// PUT update book
+// later include isAuthenticated
 router.put('/books/:bookId', (req, res, next) => {
     const { bookId } = req.params;
 
@@ -57,21 +100,6 @@ router.put('/books/:bookId', (req, res, next) => {
             });
         })
 });
-router.get('/books', isAuthenticated, (req, res, next) => {
-    // Fetch books only for the authenticated user
-    const userId = req.payload._id;
-  
-    Book.find({ user: userId })
-        .then(allBooks => {
-            res.json(allBooks);
-        })
-        .catch(err => {
-            console.log("Error getting the Books...", err);
-            res.status(500).json({
-                message: "Error getting the Books",
-                error: err
-            });
-        });
-});
+
 
 module.exports = router;

@@ -55,37 +55,37 @@ router.get("/books/:bookId/chapters/:chapterId", (req, res, next) => {
         })
         .catch(err => {
             res.status(500).json({
-                message: "Error retrieving the new chapter",
+                message: "Error retrieving new chapter",
                 error: err
             });
         });
 });
 
 
-// Add new chapter to specific book
-router.post("/books/:bookId/chapters", (req, res, next) => {
-    const { chapterNumber, title, outline, text } = req.body;
-    const { bookId } = req.params;
+// // Add new chapter to specific book
+// router.post("/books/:bookId/chapters", (req, res, next) => {
+//     const { chapterNumber, title, outline, text } = req.body;
+//     const { bookId } = req.params;
 
-    const newChapter = {
-        chapterNumber,
-        title,
-        outline,
-        text,
-        // Setting the "book" field of to the value from the params
-        book: bookId
-    }
+//     const newChapter = {
+//         chapterNumber,
+//         title,
+//         outline,
+//         text,
+//         // Setting the "book" field of to the value from the params
+//         book: bookId
+//     }
 
-    Chapter.create(newChapter)
-        .then(response => res.json(response))
-        .catch(err => {
-            res.status(500).json({
-                message: "Error creating a new chapter",
-                error: err
-            });
-        });
+//     Chapter.create(newChapter)
+//         .then(response => res.json(response))
+//         .catch(err => {
+//             res.status(500).json({
+//                 message: "Error creating a new chapter",
+//                 error: err
+//             });
+//         });
 
-});
+// });
 
 
 // Update specific chapter
